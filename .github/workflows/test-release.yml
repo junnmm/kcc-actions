@@ -1,0 +1,41 @@
+name: Docker Image CI
+
+on:
+  push # FIXME: change trigger event ?? regularly schedule?
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out KCC repo
+        uses: actions/checkout@v3
+        with:
+          repository: "kcc-community/kcc"
+      
+      - name: Fetch all git tags 
+        run: git fetch origin 
+
+      - name: Describe release 
+        run: echo "::set-output name=RELEASE_NAME::$(git describe --tags)"
+        id: describe-release
+
+      - name: dummy
+        run: echo "${{ steps.describe-release.outputs.RELEASE_NAME }}"
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.MY_GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ steps.describe-release.outputs.RELEASE_NAME }}"
+          prerelease: false
+          title: "${{ steps.describe-release.outputs.RELEASE_NAME }}"
+          files: |
+              build/bin/geth 
+      
+  
+          
+          
+          
+    

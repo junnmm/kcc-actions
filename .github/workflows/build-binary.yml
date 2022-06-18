@@ -1,0 +1,58 @@
+name: Docker Image CI
+
+on:
+  push # FIXME: change trigger event ?? regularly schedule?
+
+jobs:
+
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out KCC repo
+        uses: actions/checkout@v3
+        with:
+          repository: "kcc-community/kcc"
+      
+      - name: Checkout this repo
+        uses: actions/checkout@v3
+        with:
+          path: "kcc-builder-actions/"    
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
+        with:
+          images: kcc/kccbuilder
+          tags: latest
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
+          context: .
+          push: false
+          file: kcc-builder-actions/Dockerfile-centos7-linux
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }} 
+          
+      - name: Copy binary out of image
+        run: mkdir -p build/bin && docker create --name binContainer kcc/kccbuilder:latest && docker cp binContainer:/usr/local/bin/geth build/bin/geth && ls -la build/bin/geth
+        
+
+      - name: Describe release 
+        run: echo "::set-output name=RELEASE_NAME:$(git describe --tags)"
+        id: describe-release
+
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.MY_GITHUB_TOKEN }}"
+          automatic_release_tag: "${{ steps.describe-release.outputs.RELEASE_NAME }}"
+          prerelease: false
+          title: "${{ steps.describe-release.outputs.RELEASE_NAME }}"
+      
+  
+          
+          
+          
+    
