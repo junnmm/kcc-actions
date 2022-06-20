@@ -1,24 +1,31 @@
-name: Build Release Version 
+name: Build Dev Version 
 
 on:
-  workflow_dispatch
-      
+  workflow_dispatch:
+    commit:
+      description: The Commit to build 
+      required: false
+      default:  "dev"
+      type: environment 
+
 jobs:
 
   build:
 
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out KCC repo
         uses: actions/checkout@v3
         with:
-          repository: "kcc-community/kcc"
+          repository: "junnmm/kcc"
       
       - name: Checkout this repo
         uses: actions/checkout@v3
         with:
-          path: "kcc-builder-actions/"    
+          path: "kcc-builder-actions/" 
+
+      - name: Checkout DEV
+        run: git fetch origin && git checkout ${{ inputs.commit }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -39,11 +46,9 @@ jobs:
       - name: Copy binary out of image
         run: mkdir -p build/bin && docker create --name binContainer kcc/kccbuilder:latest && docker cp binContainer:/usr/local/bin/geth build/bin/geth && ls -la build/bin/geth
         
-      - name: Fetch all git tags 
-        run: git fetch origin 
 
       - name: Describe release 
-        run: echo "::set-output name=RELEASE_NAME::$(git describe --tags)-$(date +%s)"
+        run: echo "::set-output name=RELEASE_NAME::dev-$(git describe --tags)-$(date +%s)"
         id: describe-release
 
       - uses: "marvinpinto/action-automatic-releases@latest"
