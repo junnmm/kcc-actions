@@ -1,0 +1,12 @@
+# Build Geth in a stock Go builder container
+FROM centos:7 
+
+RUN yum install -y gcc git make wget; \
+    wget https://go.dev/dl/go1.16.15.linux-amd64.tar.gz; \
+    tar -C /usr/local -xzf go1.16.15.linux-amd64.tar.gz; \
+    export PATH=$PATH:/usr/local/go/bin; \
+    ln  -s /usr/local/go/bin/go /bin/go 
+
+ADD . /kcc-toolkit
+RUN cd /kcc-toolkit && go build -v .
+
