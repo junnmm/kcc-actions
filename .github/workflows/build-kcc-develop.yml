@@ -44,7 +44,7 @@ jobs:
         run: git fetch origin 
 
       - name: Describe release 
-        run: echo "::set-output name=RELEASE_NAME::$(git describe --tags)-$(date +%s)"
+        run: echo "::set-output name=RELEASE_NAME::$(git log -1 --format='%H')-$(date +%s)"
         id: describe-release
 
       - uses: "marvinpinto/action-automatic-releases@latest"
